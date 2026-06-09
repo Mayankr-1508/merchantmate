@@ -6,6 +6,7 @@ export type Profile = {
   ownerName: string;
   city: string;
   phone: string;
+  photoDataUrl?: string;
 };
 
 export type UdhaarEntry = {
@@ -32,6 +33,16 @@ export type StockItem = {
   lowCount?: number;
 };
 
+export type CatalogueItem = {
+  id: string;
+  name: string;
+  emoji: string;
+  costPrice: number;
+  sellPrice: number;
+  quantity: number;
+  unit: string;
+};
+
 export type SaleEntry = { date: string; cash: number; upi: number };
 
 export type Settings = { lang: Lang; theme: "light" | "dark" };
@@ -42,6 +53,7 @@ const K = {
   stock: "mm.stock",
   sales: "mm.sales",
   settings: "mm.settings",
+  catalogue: "mm.catalogue",
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -93,6 +105,7 @@ export const useProfile = () => useStored<Profile | null>(K.profile, null);
 export const useUdhaar = () => useStored<UdhaarEntry[]>(K.udhaar, []);
 export const useStock = () => useStored<StockItem[]>(K.stock, []);
 export const useSales = () => useStored<SaleEntry[]>(K.sales, []);
+export const useCatalogue = () => useStored<CatalogueItem[]>(K.catalogue, []);
 export const useSettings = () =>
   useStored<Settings>(K.settings, { lang: "hinglish", theme: "light" });
 

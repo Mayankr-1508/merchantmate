@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useProfile, useSettings, clearAll } from "@/lib/storage";
 import { tr, type Lang } from "@/lib/i18n";
-import { Edit2, Sun, Moon, LogOut, Check, X } from "lucide-react";
+import { Edit2, Sun, Moon, LogOut, Check, X, Camera } from "lucide-react";
+import { toast } from "sonner";
+import avatarImg from "@/assets/shopkeeper-avatar.png";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — MerchantMate" }] }),
@@ -16,14 +18,74 @@ function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(profile!);
   const [confirmClear, setConfirmClear] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!profile) return null;
+
+  const onPickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("Photo too large (max 4MB)");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setProfile({ ...profile, photoDataUrl: String(reader.result) });
+      toast.success(tr("saved", lang));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const photoSrc = profile.photoDataUrl || avatarImg;
 
   return (
     <div className="mx-auto max-w-md space-y-4 px-4 pt-4">
       <h1 className="text-2xl font-extrabold text-primary">👤 {tr("profile", lang)}</h1>
 
-      <div className="rounded-3xl p-5 shadow-card" style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary), var(--saffron) 35%))" }}>
+      {/* Profile photo */}
+      <div className="flex flex-col items-center pt-2">
+        <div className="relative">
+          <img
+            src={photoSrc}
+            alt="Profile"
+            className="size-32 rounded-full border-4 object-cover shadow-card"
+            style={{ borderColor: "var(--saffron)", background: "var(--card)" }}
+            width={128}
+            height={128}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            aria-label={tr("changePhoto", lang)}
+            className="absolute bottom-0 right-0 grid size-10 place-items-center rounded-full border-2 border-card text-saffron-foreground shadow-card"
+            style={{ background: "var(--saffron)" }}
+          >
+            <Camera className="size-5" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onPickPhoto}
+          />
+        </div>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="mt-2 text-sm font-bold"
+          style={{ color: "var(--saffron)" }}
+        >
+          {tr("changePhoto", lang)}
+        </button>
+      </div>
+
+      <div
+        className="rounded-3xl p-5 shadow-card"
+        style={{
+          background:
+            "linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary), var(--saffron) 35%))",
+        }}
+      >
         <div className="flex items-center gap-3">
           <div className="grid size-16 place-items-center rounded-full bg-white/20 text-3xl">🏪</div>
           <div className="flex-1 text-primary-foreground">
@@ -42,7 +104,7 @@ function ProfilePage() {
           <button
             onClick={() => {
               if (editing) {
-                setProfile(form);
+                setProfile({ ...profile, ...form });
                 setEditing(false);
               } else {
                 setForm(profile);

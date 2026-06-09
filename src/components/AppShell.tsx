@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { Home, BookOpen, Package, BarChart3, User, Plus, X } from "lucide-react";
+import { Home, BookOpen, Package, ClipboardList, BarChart3, User, Plus, X } from "lucide-react";
 import { useProfile, useSettings } from "@/lib/storage";
 import { tr } from "@/lib/i18n";
 import { SetupScreen } from "./SetupScreen";
@@ -38,12 +38,13 @@ function BottomNav({ lang }: { lang: "hi" | "hinglish" | "en" }) {
     { to: "/", icon: Home, key: "home" as const },
     { to: "/udhaar", icon: BookOpen, key: "udhaar" as const },
     { to: "/stock", icon: Package, key: "stock" as const },
+    { to: "/catalogue", icon: ClipboardList, key: "catalogue" as const },
     { to: "/stats", icon: BarChart3, key: "stats" as const },
     { to: "/profile", icon: User, key: "profile" as const },
   ];
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur">
-      <div className="mx-auto flex max-w-md items-stretch justify-between px-2">
+      <div className="mx-auto flex max-w-md items-stretch justify-between px-1">
         {items.map(({ to, icon: Icon, key }) => (
           <Link
             key={to}
@@ -51,8 +52,8 @@ function BottomNav({ lang }: { lang: "hi" | "hinglish" | "en" }) {
             activeOptions={{ exact: to === "/" }}
             className="flex flex-1 flex-col items-center gap-1 py-3 text-muted-foreground data-[status=active]:text-primary"
           >
-            <Icon className="size-6" />
-            <span className="text-[11px] font-semibold">{tr(key, lang)}</span>
+            <Icon className="size-5" />
+            <span className="text-[10px] font-semibold">{tr(key, lang)}</span>
           </Link>
         ))}
       </div>
@@ -84,11 +85,11 @@ function FloatingAdd({ lang }: { lang: "hi" | "hinglish" | "en" }) {
               📒 {tr("newUdhaar", lang)}
             </Link>
             <Link
-              to="/stock"
+              to="/catalogue"
               search={{ add: 1 }}
               className="flex items-center gap-2 rounded-full bg-card px-4 py-3 text-base font-semibold text-foreground shadow-card"
             >
-              📦 {tr("newItem", lang)}
+              📋 {tr("newItem", lang)}
             </Link>
           </>
         )}
