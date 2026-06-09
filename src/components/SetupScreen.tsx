@@ -4,6 +4,7 @@ import { tr, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import logoImg from "@/assets/kirana-logo.png";
 
 export function SetupScreen() {
   const [, setProfile] = useProfile();
@@ -18,9 +19,17 @@ export function SetupScreen() {
     <div className="min-h-screen bg-background px-5 py-8">
       <div className="mx-auto max-w-md">
         <div className="mb-6 text-center">
-          <div className="text-5xl">🏪</div>
+          <img
+            src={logoImg}
+            alt="MerchantMate kirana shop logo"
+            className="mx-auto h-32 w-32 object-contain drop-shadow-md"
+            width={256}
+            height={256}
+          />
           <h1 className="mt-2 text-3xl font-extrabold text-primary">MerchantMate</h1>
-          <p className="text-sm font-semibold text-saffron">{tr("tagline", lang)}</p>
+          <p className="text-sm font-bold" style={{ color: "var(--saffron)" }}>
+            {tr("tagline", lang)} 🏪
+          </p>
         </div>
 
         <div className="mb-5 flex gap-2">

@@ -13,6 +13,7 @@ import { Route as UdhaarRouteImport } from './routes/udhaar'
 import { Route as StockRouteImport } from './routes/stock'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as IndexRouteImport } from './routes/index'
 
 const UdhaarRoute = UdhaarRouteImport.update({
@@ -35,6 +36,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CatalogueRoute = CatalogueRouteImport.update({
+  id: '/catalogue',
+  path: '/catalogue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/catalogue': typeof CatalogueRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/stock': typeof StockRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/catalogue': typeof CatalogueRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/stock': typeof StockRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/catalogue': typeof CatalogueRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/stock': typeof StockRoute
@@ -65,14 +74,22 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/profile' | '/stats' | '/stock' | '/udhaar'
+  fullPaths: '/' | '/catalogue' | '/profile' | '/stats' | '/stock' | '/udhaar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/profile' | '/stats' | '/stock' | '/udhaar'
-  id: '__root__' | '/' | '/profile' | '/stats' | '/stock' | '/udhaar'
+  to: '/' | '/catalogue' | '/profile' | '/stats' | '/stock' | '/udhaar'
+  id:
+    | '__root__'
+    | '/'
+    | '/catalogue'
+    | '/profile'
+    | '/stats'
+    | '/stock'
+    | '/udhaar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CatalogueRoute: typeof CatalogueRoute
   ProfileRoute: typeof ProfileRoute
   StatsRoute: typeof StatsRoute
   StockRoute: typeof StockRoute
@@ -109,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/catalogue': {
+      id: '/catalogue'
+      path: '/catalogue'
+      fullPath: '/catalogue'
+      preLoaderRoute: typeof CatalogueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -121,6 +145,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CatalogueRoute: CatalogueRoute,
   ProfileRoute: ProfileRoute,
   StatsRoute: StatsRoute,
   StockRoute: StockRoute,

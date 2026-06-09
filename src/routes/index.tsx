@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useProfile, useSettings, useUdhaar, useStock, useSales, fmt, todayISO } from "@/lib/storage";
 import { tr } from "@/lib/i18n";
 import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { toast } from "sonner";
 import heroImg from "@/assets/kirana-hero.jpg";
+import avatarImg from "@/assets/shopkeeper-avatar.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -64,21 +65,45 @@ function HomePage() {
     toast.success(tr("saved", lang));
   };
 
+  const profilePhoto = profile?.photoDataUrl || avatarImg;
+
   return (
     <div className="mx-auto max-w-md">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-b-3xl">
-        <img src={heroImg} alt="Kirana shop" className="h-44 w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-        <div className="absolute bottom-3 left-0 right-0 px-5">
-          <p className="text-sm font-medium text-foreground/80">{tr("namaste", lang)} 👋</p>
-          <h1 className="text-2xl font-extrabold text-primary drop-shadow-sm">
-            {profile?.shopName}
+      {/* Header with greeting + avatar */}
+      <div className="flex items-start justify-between px-5 pt-5">
+        <div>
+          <p className="text-base font-semibold text-foreground/80">{tr("namaste", lang)} 🙏</p>
+          <h1 className="text-2xl font-extrabold leading-tight text-primary">
+            {profile?.shopName} 👋
           </h1>
+          <p className="mt-0.5 text-xs font-semibold" style={{ color: "var(--saffron)" }}>
+            {tr("tagline", lang)}
+          </p>
         </div>
+        <Link to="/profile" aria-label="Profile">
+          <img
+            src={profilePhoto}
+            alt="Shopkeeper avatar"
+            className="size-12 rounded-full border-2 object-cover shadow-card"
+            style={{ borderColor: "var(--saffron)" }}
+            width={48}
+            height={48}
+          />
+        </Link>
       </div>
 
-      <div className="space-y-5 px-4 pt-4">
+      {/* Hero illustration */}
+      <div className="relative mt-3 overflow-hidden">
+        <img
+          src={heroImg}
+          alt="Indian kirana shop with shopkeeper"
+          className="h-52 w-full object-contain"
+          width={1280}
+          height={768}
+        />
+      </div>
+
+      <div className="space-y-5 px-4 pt-2">
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-3">
           <StatCard
@@ -124,21 +149,21 @@ function HomePage() {
 
         {/* Big buttons */}
         <div className="grid grid-cols-2 gap-3">
-          <a
-            href="/udhaar"
+          <Link
+            to="/udhaar"
             className="flex flex-col items-center gap-2 rounded-2xl bg-primary px-4 py-5 text-primary-foreground shadow-card active:scale-95"
           >
             <span className="text-3xl">📒</span>
             <span className="text-base font-bold">{tr("udhaar", lang)}</span>
-          </a>
-          <a
-            href="/stock"
+          </Link>
+          <Link
+            to="/stock"
             className="flex flex-col items-center gap-2 rounded-2xl px-4 py-5 shadow-card active:scale-95"
             style={{ background: "var(--saffron)", color: "var(--saffron-foreground)" }}
           >
             <span className="text-3xl">📦</span>
             <span className="text-base font-bold">Stock & Reorder</span>
-          </a>
+          </Link>
         </div>
 
         {/* Today's sales */}
