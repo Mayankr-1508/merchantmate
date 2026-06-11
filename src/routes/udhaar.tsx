@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import {
-  useUdhaar, useProfile, useSettings, uid, todayISO, fmt, fmtDate, daysSince,
+  useUdhaar, useProfile, useSettings, useCustomerPhones, uid, todayISO, fmt, fmtDate, daysSince,
   COMMON_ITEMS, type UdhaarEntry,
 } from "@/lib/storage";
 import { tr } from "@/lib/i18n";
-import { Search, MessageCircle, Check, ChevronLeft } from "lucide-react";
+import { Search, MessageCircle, Check, ChevronLeft, Phone } from "lucide-react";
 import { toast } from "sonner";
 
 type Search = { add?: number; c?: string };
@@ -19,15 +19,28 @@ export const Route = createFileRoute("/udhaar")({
   component: UdhaarPage,
 });
 
+function sanitizePhone(p: string) {
+  const digits = p.replace(/\D/g, "");
+  // strip leading 91 if present and length 12
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  return digits;
+}
+
+function buildWaUrl(phone10: string, message: string) {
+  return `https://wa.me/91${phone10}?text=${encodeURIComponent(message)}`;
+}
+
 function UdhaarPage() {
   const search = Route.useSearch();
   const nav = Route.useNavigate();
   const [udhaar, setUdhaar] = useUdhaar();
   const [profile] = useProfile();
   const [settings] = useSettings();
+  const [phones, setPhones] = useCustomerPhones();
   const lang = settings.lang;
   const [q, setQ] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [waPopup, setWaPopup] = useState<{ phone: string; message: string } | null>(null);
 
   useEffect(() => {
     if (search.add) {
@@ -57,20 +70,32 @@ function UdhaarPage() {
     toast.success(tr("paidDone", lang));
   };
 
-  const waLink = (name: string, amount: number) => {
-    const msg = `Namaste ${name} bhai, aapka ${profile?.shopName ?? ""} par ${fmt(amount)} baaki hai. Kabhi bhi aa ke clear kar sakte hain. Dhanyavaad 🙏`;
-    return `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  const openReminder = (name: string, amount: number, lastDate: string) => {
+    const phone = phones[name];
+    if (!phone || phone.length !== 10) {
+      toast.error("Pehle phone number add karein");
+      return;
+    }
+    const message = `Namaste ${name} bhai, aapka ${profile?.shopName ?? ""} par ₹${Math.round(amount).toLocaleString("en-IN")} baaki hai. Last entry ${fmtDate(lastDate)} ki thi. Kabhi bhi aa ke clear kar sakte hain. Dhanyavaad 🙏`;
+    setWaPopup({ phone, message });
   };
 
   const bulkRemind = () => {
-    const pending = customers.filter((c) => c.total > 0);
-    if (!pending.length) return;
-    const msg = pending.map((c) => `${c.name}: ${fmt(c.total)}`).join("\n");
-    const text = `Namaste! ${profile?.shopName ?? ""} se reminder:\n\n${msg}\n\nKabhi bhi aa ke clear kar sakte hain. Dhanyavaad 🙏`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    const pending = customers.filter((c) => c.total > 0 && phones[c.name]?.length === 10);
+    const skipped = customers.filter((c) => c.total > 0 && !phones[c.name]);
+    if (!pending.length) {
+      toast.error("Pehle phone number add karein");
+      return;
+    }
+    pending.forEach((c) => {
+      const msg = `Namaste ${c.name} bhai, aapka ${profile?.shopName ?? ""} par ₹${Math.round(c.total).toLocaleString("en-IN")} baaki hai. Last entry ${fmtDate(c.lastDate)} ki thi. Kabhi bhi aa ke clear kar sakte hain. Dhanyavaad 🙏`;
+      window.open(buildWaUrl(phones[c.name], msg), "_blank");
+    });
+    if (skipped.length) toast.message(`${skipped.length} customer skip kiye (phone nahi hai)`);
   };
 
   if (activeCustomer) {
+    const phone = phones[activeCustomer.name] || "";
     return (
       <div className="mx-auto max-w-md px-4 pt-4">
         <button
@@ -93,16 +118,30 @@ function UdhaarPage() {
               <div className="text-xl font-extrabold text-destructive">{fmt(activeCustomer.total)}</div>
             </div>
           </div>
+
+          <div className="mt-3">
+            <label className="text-xs font-semibold text-muted-foreground">📞 Phone (10 digit)</label>
+            <input
+              inputMode="numeric"
+              maxLength={10}
+              value={phone}
+              onChange={(e) => {
+                const v = sanitizePhone(e.target.value).slice(0, 10);
+                setPhones({ ...phones, [activeCustomer.name]: v });
+              }}
+              placeholder="98XXXXXXXX"
+              className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-base"
+            />
+          </div>
+
           {activeCustomer.total > 0 && (
-            <a
-              href={waLink(activeCustomer.name, activeCustomer.total)}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 flex h-12 items-center justify-center gap-2 rounded-xl text-base font-bold text-white"
+            <button
+              onClick={() => openReminder(activeCustomer.name, activeCustomer.total, activeCustomer.lastDate)}
+              className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-base font-bold text-white"
               style={{ background: "#25D366" }}
             >
               <MessageCircle className="size-5" /> {tr("sendWhatsApp", lang)}
-            </a>
+            </button>
           )}
         </div>
 
@@ -132,6 +171,8 @@ function UdhaarPage() {
             </div>
           ))}
         </div>
+
+        {waPopup && <WaPopup popup={waPopup} onClose={() => setWaPopup(null)} />}
       </div>
     );
   }
@@ -161,11 +202,10 @@ function UdhaarPage() {
       )}
 
       <div className="mt-4 space-y-2">
-        {customers.length === 0 && (
-          <EmptyState text={tr("noUdhaar", lang)} />
-        )}
+        {customers.length === 0 && <EmptyState text={tr("noUdhaar", lang)} />}
         {customers.map((c) => {
           const days = daysSince(c.lastDate);
+          const hasPhone = !!phones[c.name];
           return (
             <button
               key={c.name}
@@ -175,12 +215,19 @@ function UdhaarPage() {
               <Avatar name={c.name} />
               <div className="flex-1">
                 <div className="text-base font-bold">{c.name}</div>
-                {c.total > 0 && days > 7 && (
-                  <div className="text-xs font-semibold text-warning">
-                    {days} {tr("daysOld", lang)}
-                  </div>
-                )}
-                {c.total === 0 && <div className="text-xs text-success">✓ Clear</div>}
+                <div className="flex items-center gap-2">
+                  {hasPhone && (
+                    <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Phone className="size-3" /> {phones[c.name]}
+                    </span>
+                  )}
+                  {c.total > 0 && days > 7 && (
+                    <span className="text-xs font-semibold text-warning">
+                      {days} {tr("daysOld", lang)}
+                    </span>
+                  )}
+                  {c.total === 0 && <span className="text-xs text-success">✓ Clear</span>}
+                </div>
               </div>
               <div className={"text-lg font-extrabold " + (c.total > 0 ? "text-destructive" : "text-muted-foreground")}>
                 {fmt(c.total)}
@@ -193,15 +240,56 @@ function UdhaarPage() {
       {showAdd && (
         <AddUdhaarModal
           onClose={() => setShowAdd(false)}
-          onSave={(e) => {
+          onSave={(e, phone) => {
             setUdhaar([...udhaar, e]);
+            if (phone && phone.length === 10) {
+              setPhones({ ...phones, [e.customer]: phone });
+            }
             setShowAdd(false);
             toast.success(tr("saved", lang));
           }}
           existingNames={[...new Set(udhaar.map((u) => u.customer))]}
+          phones={phones}
           lang={lang}
         />
       )}
+
+      {waPopup && <WaPopup popup={waPopup} onClose={() => setWaPopup(null)} />}
+    </div>
+  );
+}
+
+function WaPopup({
+  popup, onClose,
+}: { popup: { phone: string; message: string }; onClose: () => void }) {
+  const [text, setText] = useState(popup.message);
+  const send = () => {
+    window.open(buildWaUrl(popup.phone, text), "_blank");
+    onClose();
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-end bg-black/50" onClick={onClose}>
+      <div
+        className="max-h-[90vh] w-full overflow-y-auto rounded-t-3xl bg-card p-5 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-border" />
+        <h2 className="mb-1 text-lg font-extrabold">💬 WhatsApp Reminder</h2>
+        <div className="mb-3 text-xs text-muted-foreground">To: +91 {popup.phone}</div>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={6}
+          className="w-full rounded-xl border border-border bg-background p-3 text-sm"
+        />
+        <button
+          onClick={send}
+          className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-base font-bold text-white"
+          style={{ background: "#25D366" }}
+        >
+          <MessageCircle className="size-5" /> Send on WhatsApp
+        </button>
+      </div>
     </div>
   );
 }
@@ -228,17 +316,26 @@ function EmptyState({ text }: { text: string }) {
 }
 
 function AddUdhaarModal({
-  onClose, onSave, existingNames, lang,
+  onClose, onSave, existingNames, phones, lang,
 }: {
   onClose: () => void;
-  onSave: (e: UdhaarEntry) => void;
+  onSave: (e: UdhaarEntry, phone: string) => void;
   existingNames: string[];
+  phones: Record<string, string>;
   lang: "hi" | "hinglish" | "en";
 }) {
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [items, setItems] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(todayISO());
+
+  // auto-fill phone when name matches an existing customer
+  useEffect(() => {
+    const existing = phones[name.trim()];
+    if (existing && !phone) setPhone(existing);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name]);
 
   const suggestions = existingNames.filter((n) =>
     n.toLowerCase().startsWith(name.toLowerCase()) && n.toLowerCase() !== name.toLowerCase()
@@ -259,7 +356,7 @@ function AddUdhaarModal({
       amount: Number(amount),
       date,
       paid: false,
-    });
+    }, phone.trim());
   };
 
   return (
@@ -284,7 +381,7 @@ function AddUdhaarModal({
                 {suggestions.map((s) => (
                   <button
                     key={s}
-                    onClick={() => setName(s)}
+                    onClick={() => { setName(s); setPhone(phones[s] || ""); }}
                     className="rounded-full bg-accent px-3 py-1 text-xs font-semibold"
                   >
                     {s}
@@ -292,6 +389,18 @@ function AddUdhaarModal({
                 ))}
               </div>
             )}
+          </div>
+
+          <div>
+            <label className="text-sm font-semibold">📞 Customer Phone (10 digit)</label>
+            <input
+              inputMode="numeric"
+              maxLength={10}
+              value={phone}
+              onChange={(e) => setPhone(sanitizePhone(e.target.value).slice(0, 10))}
+              placeholder="98XXXXXXXX"
+              className="mt-1 h-12 w-full rounded-xl border border-border bg-background px-3 text-base"
+            />
           </div>
 
           <div>

@@ -54,7 +54,10 @@ const K = {
   sales: "mm.sales",
   settings: "mm.settings",
   catalogue: "mm.catalogue",
+  customerPhones: "mm.customerPhones",
+  supplierPhone: "mm.supplierPhone",
 };
+
 
 function read<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -106,8 +109,11 @@ export const useUdhaar = () => useStored<UdhaarEntry[]>(K.udhaar, []);
 export const useStock = () => useStored<StockItem[]>(K.stock, []);
 export const useSales = () => useStored<SaleEntry[]>(K.sales, []);
 export const useCatalogue = () => useStored<CatalogueItem[]>(K.catalogue, []);
+export const useCustomerPhones = () => useStored<Record<string, string>>(K.customerPhones, {});
+export const useSupplierPhone = () => useStored<string>(K.supplierPhone, "");
 export const useSettings = () =>
   useStored<Settings>(K.settings, { lang: "hinglish", theme: "light" });
+
 
 export const clearAll = () => {
   Object.values(K).forEach((k) => localStorage.removeItem(k));
