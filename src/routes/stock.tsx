@@ -101,15 +101,31 @@ function StockPage() {
         ))}
       </div>
 
-      {tab === "reorder" && low.length > 0 && (
-        <button
-          onClick={sendReorderWA}
-          className="mb-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-white"
-          style={{ background: "#25D366" }}
-        >
-          <MessageCircle className="size-5" /> {tr("sendReorder", lang)}
-        </button>
+      {tab === "reorder" && (
+        <div className="mb-3 rounded-2xl bg-card p-3 shadow-card">
+          <label className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+            <Phone className="size-3" /> Supplier Phone Number (10 digit)
+          </label>
+          <input
+            inputMode="numeric"
+            maxLength={10}
+            value={supplierPhone}
+            onChange={(e) => setSupplierPhone(sanitizePhone(e.target.value).slice(0, 10))}
+            placeholder="98XXXXXXXX"
+            className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-base"
+          />
+          {low.length > 0 && (
+            <button
+              onClick={sendReorderWA}
+              className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-white"
+              style={{ background: "#25D366" }}
+            >
+              <MessageCircle className="size-5" /> {tr("sendReorder", lang)}
+            </button>
+          )}
+        </div>
       )}
+
 
       <div className="space-y-2">
         {visible.length === 0 && (
