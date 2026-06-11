@@ -1,12 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  useStock, useProfile, useSettings, uid, todayISO, fmt, fmtDate,
+  useStock, useProfile, useSettings, useSupplierPhone, uid, todayISO, fmt, fmtDate,
   COMMON_ITEMS, UNITS, type StockItem,
 } from "@/lib/storage";
 import { tr } from "@/lib/i18n";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
+
+function sanitizePhone(p: string) {
+  const digits = p.replace(/\D/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  return digits;
+}
+
 
 type Search = { add?: number; tab?: "all" | "reorder" };
 
@@ -25,6 +32,7 @@ function StockPage() {
   const [stock, setStock] = useStock();
   const [profile] = useProfile();
   const [settings] = useSettings();
+  const [supplierPhone, setSupplierPhone] = useSupplierPhone();
   const lang = settings.lang;
   const [showAdd, setShowAdd] = useState(false);
 
@@ -34,6 +42,7 @@ function StockPage() {
       nav({ search: { tab: search.tab }, replace: true });
     }
   }, [search.add, search.tab, nav]);
+
 
   const tab = search.tab ?? "all";
   const low = stock.filter((s) => s.quantity <= s.minStock);
@@ -63,15 +72,19 @@ function StockPage() {
 
   const sendReorderWA = () => {
     if (!low.length) return;
-    const text =
-      `Namaste! ${profile?.shopName ?? ""} ke liye reorder list:\n\n` +
-      low.map((i) => `${i.emoji} ${i.name} — ${i.minStock * 2} ${i.unit}`).join("\n");
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    if (supplierPhone.length !== 10) {
+      toast.error("Supplier phone number add karein (10 digit)");
+      return;
+    }
+    const itemsText = low.map((i) => `${i.name} ${i.minStock * 2} ${i.unit}`).join(", ");
+    const text = `Reorder list for ${profile?.shopName ?? ""}: ${itemsText}`;
+    window.open(`https://wa.me/91${supplierPhone}?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (
     <div className="mx-auto max-w-md px-4 pt-4">
       <h1 className="mb-3 text-2xl font-extrabold text-primary">📦 Stock</h1>
+
 
       <div className="mb-4 flex gap-2 rounded-2xl bg-card p-1 shadow-card">
         {(["all", "reorder"] as const).map((t) => (
