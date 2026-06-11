@@ -7,7 +7,7 @@ export const T: Dict = {
   tagline: {
     hi: "आपकी दुकान, आपका हिसाब",
     hinglish: "Aapki dukaan, aapka hisaab",
-    en: "Your shop, your ledger",
+    en: "Aapki dukaan, aapka hisaab",
   },
   namaste: { hi: "नमस्ते", hinglish: "Namaste", en: "Hello" },
   home: { hi: "घर", hinglish: "Home", en: "Home" },
