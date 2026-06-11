@@ -83,10 +83,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Aapki dukaan, aapka hisaab — kirana store ledger, stock & stats app." },
       { name: "author", content: "MerchantMate" },
       { property: "og:title", content: "MerchantMate" },
-      { property: "og:description", content: "Aapki dukaan, aapka hisaab" },
+      { property: "og:description", content: "Aapki dukaan, aapka hisaab — kirana store ledger, stock & stats app." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "MerchantMate" },
+      { name: "twitter:description", content: "Aapki dukaan, aapka hisaab — kirana store ledger, stock & stats app." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/5de36d16-e7ce-4105-9558-7a431e662b25" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/5de36d16-e7ce-4105-9558-7a431e662b25" },
     ],
     links: [
       {
