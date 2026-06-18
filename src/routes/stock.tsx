@@ -119,13 +119,21 @@ function StockPage() {
             className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-base"
           />
           {low.length > 0 && (
-            <button
-              onClick={sendReorderWA}
+            <a
+              href={reorderUrl || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                if (!reorderUrl) {
+                  e.preventDefault();
+                  toast.error("Supplier phone number add karein (10 digit)");
+                }
+              }}
               className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-white"
               style={{ background: "#25D366" }}
             >
               <MessageCircle className="size-5" /> {tr("sendReorder", lang)}
-            </button>
+            </a>
           )}
         </div>
       )}
