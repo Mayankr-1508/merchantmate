@@ -70,15 +70,19 @@ function StockPage() {
     toast.success("Reorder marked");
   };
 
+  const reorderUrl = (() => {
+    if (!low.length || supplierPhone.length !== 10) return "";
+    const itemsText = low.map((i) => `${i.name} ${i.minStock * 2} ${i.unit}`).join(", ");
+    const text = `Reorder list for ${profile?.shopName ?? ""}: ${itemsText}`;
+    return `https://wa.me/91${supplierPhone}?text=${encodeURIComponent(text)}`;
+  })();
+
   const sendReorderWA = () => {
     if (!low.length) return;
     if (supplierPhone.length !== 10) {
       toast.error("Supplier phone number add karein (10 digit)");
       return;
     }
-    const itemsText = low.map((i) => `${i.name} ${i.minStock * 2} ${i.unit}`).join(", ");
-    const text = `Reorder list for ${profile?.shopName ?? ""}: ${itemsText}`;
-    window.open(`https://wa.me/91${supplierPhone}?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (
