@@ -263,10 +263,7 @@ function WaPopup({
   popup, onClose,
 }: { popup: { phone: string; message: string }; onClose: () => void }) {
   const [text, setText] = useState(popup.message);
-  const send = () => {
-    window.open(buildWaUrl(popup.phone, text), "_blank");
-    onClose();
-  };
+  const waUrl = buildWaUrl(popup.phone, text);
   return (
     <div className="fixed inset-0 z-50 flex items-end bg-black/50" onClick={onClose}>
       <div
@@ -282,13 +279,16 @@ function WaPopup({
           rows={6}
           className="w-full rounded-xl border border-border bg-background p-3 text-sm"
         />
-        <button
-          onClick={send}
+        <a
+          href={waUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onClose}
           className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-base font-bold text-white"
           style={{ background: "#25D366" }}
         >
           <MessageCircle className="size-5" /> Send on WhatsApp
-        </button>
+        </a>
       </div>
     </div>
   );
