@@ -85,6 +85,13 @@ function FloatingAdd({ lang }: { lang: "hi" | "hinglish" | "en" }) {
               📒 {tr("newUdhaar", lang)}
             </Link>
             <Link
+              to="/stock"
+              search={{ add: 1 }}
+              className="flex items-center gap-2 rounded-full bg-card px-4 py-3 text-base font-semibold text-foreground shadow-card"
+            >
+              📦 {tr("newStock", lang)}
+            </Link>
+            <Link
               to="/catalogue"
               search={{ add: 1 }}
               className="flex items-center gap-2 rounded-full bg-card px-4 py-3 text-base font-semibold text-foreground shadow-card"

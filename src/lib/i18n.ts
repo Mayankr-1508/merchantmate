@@ -29,6 +29,7 @@ export const T: Dict = {
   saved: { hi: "सेव हो गया", hinglish: "Save ho gaya", en: "Saved" },
   searchCustomer: { hi: "ग्राहक खोजें", hinglish: "Customer dhundo", en: "Search customer" },
   newUdhaar: { hi: "नया उधार", hinglish: "Naya Udhaar", en: "New Credit" },
+  newStock: { hi: "नया स्टॉक", hinglish: "Naya Stock", en: "New Stock" },
   newItem: { hi: "नया आइटम", hinglish: "Naya Item", en: "New Item" },
   customerName: { hi: "ग्राहक का नाम", hinglish: "Customer ka naam", en: "Customer name" },
   kyaLiya: { hi: "क्या लिया", hinglish: "Kya liya", en: "Items taken" },
